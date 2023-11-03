@@ -25,6 +25,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     uint256 public protocolSellFeePercent;
     uint256 public creatorBuyFeePercent;
     uint256 public creatorSellFeePercent;
+    uint256 public constant MAX_FEE_PERCENT = 1 ether / 10; 
 
     mapping(uint256 => uint256) public sharesSupply;
     mapping(uint256 => uint256) public moneySupply;
@@ -66,21 +67,25 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     }
 
     function setProtocolBuyFeePercent(uint256 _feePercent) external onlyOwner {
+        require(_feePercent <= MAX_FEE_PERCENT, "Invalid fee parameter");
         protocolBuyFeePercent = _feePercent;
         emit SetProtocolBuyFee(_feePercent);
     }
 
     function setProtocolSellFeePercent(uint256 _feePercent) external onlyOwner {
+        require(_feePercent <= MAX_FEE_PERCENT, "Invalid fee parameter");
         protocolSellFeePercent = _feePercent;
         emit SetProtocolSellFee(_feePercent);
     }
 
     function setCreatorBuyFeePercent(uint256 _feePercent) external onlyOwner {
+        require(_feePercent <= MAX_FEE_PERCENT, "Invalid fee parameter");
         creatorBuyFeePercent = _feePercent;
         emit SetCreatorBuyFee(_feePercent);
     }
 
     function setCreatorSellFeePercent(uint256 _feePercent) external onlyOwner {
+        require(_feePercent <= MAX_FEE_PERCENT, "Invalid fee parameter");
         creatorSellFeePercent = _feePercent;
         emit SetCreatorSellFee(_feePercent);
     }
@@ -125,6 +130,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     }
 
     function createShares(uint256 creatorId, uint256 supplyAmount, uint256 totalPrice) public  payable {
+        require(isOpenInit == true, 'create shares not start');
         uint256 supply = sharesSupply[creatorId];
         address creator = _getCreatorById(creatorId);
         require(supply == 0 && msg.sender == creator, "supply has been created");
