@@ -144,7 +144,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         uint256 supply = sharesSupply[creatorId];
         uint256 money = moneySupply[creatorId];
         uint256 afterSupply = supply - supplyAmount;
-        require(afterSupply > 0 && supplyAmount > 0, "Incorrect input number");
+        require(afterSupply > 0 && supplyAmount > 0, "Insufficient shares");
         fees memory fee = _calculateFees(supply, money, supplyAmount, true);
         require( msg.value >= fee.price + fee.protocolFee + fee.creatorFee, "Insufficient payment" );
         sharesSupply[creatorId] = afterSupply;
@@ -170,7 +170,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
 
     function _sellSharesbyAMM(uint256[] memory tokenIds, uint256 priceLimit) internal {
         uint256 length = tokenIds.length;
-        require(length > 0, "TokenIds cannot be empty");
+        require(length > 0, "Insufficient shares");
         uint256 creatorId = farcasterKey.creatorIdOf(tokenIds[0]);
         uint256[] memory creatorIds = new uint256[](length);
         creatorIds[0] = creatorId;

@@ -7,4 +7,5 @@ export const ERRORS = {
   ZERO_CLAIMABLE: "Zero claimable",
   CREATOR_CAN_NOT_BE_ZERO: "Creator can not be zero",
   NOT_OWNER_OR_APPROVED: "ERC721: caller is not token owner or approved",
+  PRICE_NOT_IN_RANGE: "price not in the range"
 };

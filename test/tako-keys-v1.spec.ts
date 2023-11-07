@@ -107,6 +107,9 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       it('Should fail to buy if insufficient payment', async () => {
         await expect(takoKeysV1.connect(user).buySharesByAMM(CREATOR_ID, 100, {value: 1})).to.revertedWith(ERRORS.INSUFFICIENT_PAYMENT)
       })
+      it('Should fail to but if insufficient shares', async () => {
+        await expect(takoKeysV1.connect(user).buySharesByAMM(CREATOR_ID, 1001, {value: 1000})).to.reverted
+      })
       it('Should fail to buy if creatorId error', async () => {
         await expect(takoKeysV1.connect(user).buySharesByAMM(CREATOR_NOT_EXIST, 100, {value: 10000})).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO)
       })
@@ -121,6 +124,12 @@ makeSuiteCleanRoom('takoKeysV1', () => {
     })
     it('Should success to sell shares by AMM', async () => {
       await expect(takoKeysV1.connect(user).sellSharesByAMM([...Array(10).keys()].slice(1), 0)).to.not.reverted
+    })
+    it('Should fail to sell shares if token id is empty', async () => {
+      await expect(takoKeysV1.connect(user).sellSharesByAMM([], 0)).to.revertedWith(ERRORS.INSUFFICIENT_SHARES)
+    })
+    it('Should fail to sell shares if price is not in the range', async () => {
+      await expect(takoKeysV1.connect(user).sellSharesByAMM([0], 1000)).to.revertedWith(ERRORS.PRICE_NOT_IN_RANGE)
     })
   });
 
