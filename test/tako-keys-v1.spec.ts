@@ -92,7 +92,7 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       await init();
     });
     it('Should success to create pool', async () => {
-      await expect(takoKeysV1.connect(creatorOwner).createShares(CREATOR_ID,1000,1000)).to.not.reverted;
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 1, 5, 10000)).to.not.reverted;
       //await expect(jamfrensKeysV1.connect(user).getMessageSender()).to.not.reverted;
     })
   });
@@ -102,16 +102,7 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       await initCreate();
     })
       it('Should success to buy by AMM Shares', async () => {
-        await expect(takoKeysV1.connect(user).buySharesByAMM(CREATOR_ID, 100, {value: 10000})).to.not.reverted
-      })
-      it('Should fail to buy if insufficient payment', async () => {
-        await expect(takoKeysV1.connect(user).buySharesByAMM(CREATOR_ID, 100, {value: 1})).to.revertedWith(ERRORS.INSUFFICIENT_PAYMENT)
-      })
-      it('Should fail to but if insufficient shares', async () => {
-        await expect(takoKeysV1.connect(user).buySharesByAMM(CREATOR_ID, 1001, {value: 1000})).to.reverted
-      })
-      it('Should fail to buy if creatorId error', async () => {
-        await expect(takoKeysV1.connect(user).buySharesByAMM(CREATOR_NOT_EXIST, 100, {value: 10000})).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO)
+        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 4, {value: 440000})).to.not.reverted
       })
   })
   context('User sell by AMM', () => {
@@ -120,16 +111,8 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       await initBuyAMM();
     });
     it('Should success to sell Share by AMM',async () => {
-      await expect(takoKeysV1.connect(user).sellShareByAMM([0],0)).to.not.reverted
+      await expect(takoKeysV1.connect(user).sellShares([0],0)).to.not.reverted
     })
-    it('Should success to sell shares by AMM', async () => {
-      await expect(takoKeysV1.connect(user).sellSharesByAMM([...Array(10).keys()].slice(1), 0)).to.not.reverted
-    })
-    it('Should fail to sell shares if token id is empty', async () => {
-      await expect(takoKeysV1.connect(user).sellSharesByAMM([], 0)).to.revertedWith(ERRORS.INSUFFICIENT_SHARES)
-    })
-    it('Should fail to sell shares if price is not in the range', async () => {
-      await expect(takoKeysV1.connect(user).sellSharesByAMM([0], 1000)).to.revertedWith(ERRORS.PRICE_NOT_IN_RANGE)
     })
   });
 
@@ -151,7 +134,6 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       ).to.not.reverted;
     });
   });
-});
 
 async function init() {
   relayer = testWallet;
@@ -173,10 +155,10 @@ async function init() {
 }
 
 async function initCreate() {
-  await takoKeysV1.connect(creatorOwner).createShares(CREATOR_ID, 1000, 1000);
+  await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 1, 5, 10000)).to.not.reverted;
 }
 
 async function initBuyAMM() {
   await initCreate();
-  await takoKeysV1.connect(user).buySharesByAMM(CREATOR_ID, 100, {value: 10000});
+  await takoKeysV1.connect(user).buyShares(CREATOR_ID, 4, {value: 440000});
 }

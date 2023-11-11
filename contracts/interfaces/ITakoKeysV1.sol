@@ -37,11 +37,13 @@ interface ITakoKeysV1 {
         uint256 amount
     ) external view returns (uint256);
 
-    function buySharesByAMM(uint256 creatorId, uint256 amount) external payable;
+    function createSharesForPiecewise(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint sharesAmount, uint256 a, uint256 b, uint256 k) external;
 
-    function sellShareByAMM(uint256 tokenId, uint256 priceLimit) external;
-
-    function sellSharesByAMM(uint256[] memory tokenIds, uint256 priceLimit) external;
+    function buyShares(uint256 creatorId, uint256 amount) external payable;
+    
+    function sellShares(uint256[] memory tokenIds, uint256 priceLimit) external;
+    
+    function sellShare(uint256 tokenId, uint256 priceLimit) external;
 
     function claim() external;
 
@@ -49,5 +51,14 @@ interface ITakoKeysV1 {
         uint256 price;
         uint256 protocolFee;
         uint256 creatorFee;
+    }
+
+    struct poolParams {
+        uint256 idoPrice;
+        uint256 idoAmount;
+        uint256 sharesAmount;
+        uint256 a;
+        uint256 b;
+        uint256 k;
     }
 }
