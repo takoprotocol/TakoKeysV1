@@ -78,6 +78,6 @@ async function initFarcasterMock(){
   const creatorOwner = await users[0].getAddress();
   const creatorOwner1 = await users[1].getAddress();
   farcasterHubMock = await smock.fake(FarcasterHubAbi);
-  farcasterHubMock.recoveryOf.whenCalledWith(1).returns(creatorOwner);
-  farcasterHubMock.recoveryOf.whenCalledWith(2).returns(creatorOwner1);
+  farcasterHubMock.custodyOf.whenCalledWith(1).returns(creatorOwner);
+  farcasterHubMock.custodyOf.whenCalledWith(2).returns(creatorOwner1);
 }

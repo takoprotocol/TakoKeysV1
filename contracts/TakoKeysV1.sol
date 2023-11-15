@@ -346,7 +346,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     function _getCreatorById(
         uint256 creatorId
     ) internal view returns (address) {
-        address creator = farcasterHub.recoveryOf(creatorId);
+        address creator = farcasterHub.custodyOf(creatorId);
         require(creator != address(0), "Creator can not be zero");
         return creator;
     }
