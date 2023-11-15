@@ -60,7 +60,6 @@ async function initAccount() {
 
 async function initContract() {
   await initFarcasterMock();
-  //await initJamOldContractMock();
   const takoV1Factory = await hre.ethers.getContractFactory(
     "TakoKeysV1"
   );

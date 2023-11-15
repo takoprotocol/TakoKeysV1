@@ -48,7 +48,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         fees fees,
         uint256 supply
     );
-    event CreateShares(uint256 creatorId, uint256 supplyAmount, uint256 totalPrice);
+    event CreateShares(uint256 creatorId, poolParams info);
     event ClaimEvent(address indexed user, uint fee);
 
     constructor(IIdRegistry _farcasterHub) {
@@ -134,9 +134,15 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     function createSharesForPiecewise(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint sharesAmount, uint256 a, uint256 b, uint256 k) external {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
-        //TODO: verification for params
+        require(creator == msg.sender, "Not creator");
+        _creatParamsVerification(idoPrice, idoAmount, sharesAmount, a, b, k);
         poolInfo[creatorId] = poolParams(idoPrice, idoAmount, sharesAmount, a, b ,k);
-        //TODO: event emit
+        emit CreateShares(creatorId, poolInfo[creatorId]);
+    }
+
+    function _creatParamsVerification(uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, uint256 k) internal pure {
+        require(sharesAmount > 0, "incorrect sharesAmount");
+        require(a * idoAmount * idoAmount + b * idoAmount + k >= idoPrice, "incorrect curve params");
     }
 
     function buyShares(uint256 creatorId, uint256 amount) external payable nonReentrant() {
@@ -144,7 +150,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         console.log("creatorId: (buy)");
         console.log(creatorId);
         uint256 supply = sharesSupply[creatorId];
-        //TODO: params verification
         fees memory fee = _calculateFeesForPiecewise(creatorId, amount, true);
         console.log("price should be:");
         console.log(fee.price);
@@ -156,10 +161,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
             amount, 
             creatorId
         );
-        for(uint256 i = tokenIds.length; i > 0; i--){
-            console.log("Id for NFT:");
-            console.log(tokenIds[i - 1]);
-        }
         (bool success, ) = protocolFeeDestination.call{value: fee.protocolFee}("");
         require(success, "Unable to send funds");
         emit TradeEvent(
@@ -241,7 +242,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         }else{
             console.log("calculate fee for sell");
             console.log(amount);
-            //TODO: sell fee should minus by
             uint256 price = _getSellPriceByPiecewise(creatorId, amount);
             return fees(price, (price * protocolSellFeePercent) / 1 ether, (price * creatorSellFeePercent) / 1 ether);
         }
@@ -284,6 +284,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         console.log("supply for buy");
         console.log(supply);
         uint256 price = 0;
+        require(supply + amount <= info.sharesAmount, "incorrect buy amount");
         if(supply + amount <= info.idoAmount){
             price = _getPriceOnConstant(amount, info);
         }else if(supply >= info.idoAmount){
