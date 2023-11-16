@@ -28,7 +28,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     uint256 public constant MAX_FEE_PERCENT = 1 ether / 10; 
 
     mapping(uint256 => uint256) public sharesSupply;
-    mapping(uint256 => uint256) public moneySupply;
     mapping(address => uint256) public userClaimable;
 
     mapping(uint256 => poolParams) public poolInfo;
@@ -53,7 +52,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
 
     constructor(IIdRegistry _farcasterHub) {
         require(address(_farcasterHub) != address(0), "invalid farcaster address");
-
         farcasterKey = new FarcasterKey(msg.sender);
         farcasterHub = _farcasterHub;
         protocolFeeDestination = msg.sender;
@@ -124,14 +122,14 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     function getSellPriceAfterFee(
         uint256 creatorId,
         uint256 amount
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         uint256 price = _getSellPriceByPiecewise(creatorId, amount);
         uint256 protocolFee = (price * protocolSellFeePercent) / 1 ether;
         uint256 creatorFee = (price * creatorSellFeePercent) / 1 ether;
         return price - protocolFee - creatorFee;
     }
 
-    function createSharesForPiecewise(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint sharesAmount, uint256 a, uint256 b, uint256 k) external {
+    function createSharesForPiecewise(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint sharesAmount, uint256 a, uint256 b, uint256 k) external nonReentrant {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
         require(creator == msg.sender, "Not creator");
@@ -147,12 +145,8 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
 
     function buyShares(uint256 creatorId, uint256 amount) external payable nonReentrant() {
         address creator = _getCreatorById(creatorId);
-        console.log("creatorId: (buy)");
-        console.log(creatorId);
         uint256 supply = sharesSupply[creatorId];
         fees memory fee = _calculateFeesForPiecewise(creatorId, amount, true);
-        console.log("price should be:");
-        console.log(fee.price);
         require(msg.value >= fee.price , "Insufficient payment");
         sharesSupply[creatorId] += amount;
         userClaimable[creator] += fee.creatorFee;
@@ -178,8 +172,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         uint256 length = tokenIds.length;
         require(length > 0, "Insufficient shares");
         uint256 creatorId = farcasterKey.creatorIdOf(tokenIds[0]);
-        console.log("creatorId: (sell)");
-        console.log(creatorId);
         uint256[] memory creatorIds = new uint256[](length);
         creatorIds[0] = creatorId;
         for (uint256 i = 0; i < length; ) {
@@ -202,8 +194,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         }
         if (creatorId != 0) {
             uint256 resultValue = _sellShare(creatorId, tokenIds);
-            console.log("sell value");
-            console.log(resultValue);
             require(resultValue >= priceLimit, "price not in the range");
         } else {
             uint256 resultValue = 0;
@@ -215,8 +205,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
                     ++i;
                 }
             }
-            console.log("sell value");
-            console.log(resultValue);
             require(resultValue >= priceLimit, "price not in the range");
         }
     }
@@ -228,20 +216,14 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         userClaimable[creator] += fee.creatorFee;
         require(sendFunds(msg.sender, fee.price, fee.protocolFee, fee.creatorFee), "send funds failed");
         emit TradeEvent(msg.sender, creatorId, false, tokenIds.length, tokenIds, fee, sharesSupply[creatorId]);
-        console.log("sell fee price");
-        console.log(fee.price);
         return fee.price - fee.protocolFee - fee.creatorFee;
     }
 
     function _calculateFeesForPiecewise(uint256 creatorId, uint256 amount, bool isBuy) internal view returns (fees memory) {
         if(isBuy){
-            console.log("calculate fee for buy");
-            console.log(amount);
             uint256 price = _getBuyPriceByPiecewise(creatorId, amount);
             return fees(price, (price * protocolBuyFeePercent) / 1 ether, (price * creatorBuyFeePercent) / 1 ether);
         }else{
-            console.log("calculate fee for sell");
-            console.log(amount);
             uint256 price = _getSellPriceByPiecewise(creatorId, amount);
             return fees(price, (price * protocolSellFeePercent) / 1 ether, (price * creatorSellFeePercent) / 1 ether);
         }
@@ -253,22 +235,18 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         return success0 && success1;
     }
 
-    function sellShare(uint256 tokenId, uint256 priceLimit) external nonReentrant() {
+    function sellShare(uint256 tokenId, uint256 priceLimit) external nonReentrant {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = tokenId;
         _sellShares(tokenIds, priceLimit);
     }
 
-    function sellShares(uint256[] memory tokenIds, uint256 priceLimit) external nonReentrant(){
+    function sellShares(uint256[] memory tokenIds, uint256 priceLimit) external nonReentrant {
         _sellShares(tokenIds, priceLimit);
     }
 
     function claim() external nonReentrant {
         uint256 claimable = userClaimable[msg.sender];
-        console.log("claimable:");
-        console.log(claimable);
-        console.log("Balance");
-        console.log(address(this).balance);
         require(claimable > 0, "Zero claimable");
         userClaimable[msg.sender] = 0;
         (bool success, ) = msg.sender.call{value: claimable}("");
@@ -279,10 +257,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     function _getBuyPriceByPiecewise(uint256 creatorId, uint256 amount) internal view returns (uint256) {
         uint256 supply = sharesSupply[creatorId];
         poolParams memory info = poolInfo[creatorId];
-        console.log("ido amount");
-        console.log(info.idoAmount);
-        console.log("supply for buy");
-        console.log(supply);
         uint256 price = 0;
         require(supply + amount <= info.sharesAmount, "incorrect buy amount");
         if(supply + amount <= info.idoAmount){
@@ -301,8 +275,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
 
     function _getSellPriceByPiecewise(uint256 creatorId, uint256 amount) internal view returns (uint256) {
         uint256 supply = sharesSupply[creatorId];
-        console.log("supply for sell");
-        console.log(supply);
         poolParams memory info = poolInfo[creatorId];
         uint256 price = 0;
         if(supply <= info.idoAmount){
@@ -319,28 +291,20 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         return price;
     }
 
-    function _getPriceOnCurve(uint256 supplyAmount, uint256 changeAmount, poolParams memory info) internal view returns (uint256){
-        console.log("curve amount");
-        console.log(changeAmount);
+    function _getPriceOnCurve(uint256 supplyAmount, uint256 changeAmount, poolParams memory info) pure internal returns (uint256){
         uint256 sum1 = 
         info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/6 +
         info.b * ( supplyAmount * (supplyAmount + 1) / 2) +
         info.k * supplyAmount;
-        console.log("sum1");
-        console.log(sum1);
         supplyAmount += changeAmount;
         uint256 sum2 =
         info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/6 +
         info.b * ( supplyAmount * (supplyAmount + 1) / 2) +
         info.k * supplyAmount;
-        console.log("sum2");
-        console.log(sum2);
         return sum2 - sum1;
     }
 
-    function _getPriceOnConstant(uint256 changeAmount, poolParams memory info) internal view returns (uint256){
-        console.log("Constant amount");
-        console.log(changeAmount);
+    function _getPriceOnConstant(uint256 changeAmount, poolParams memory info) pure internal returns (uint256){
         return changeAmount * info.idoPrice; 
     }
 
