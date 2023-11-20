@@ -129,12 +129,12 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         return price - protocolFee - creatorFee;
     }
 
-    function createSharesForPiecewise(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint sharesAmount, uint256 a, uint256 b, uint256 k) external nonReentrant {
+    function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k) external nonReentrant {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
         require(creator == msg.sender, "Not creator");
-        _creatParamsVerification(idoPrice, idoAmount, sharesAmount, a, b, k);
-        poolInfo[creatorId] = poolParams(idoPrice, idoAmount, sharesAmount, a, b ,k);
+        _creatParamsVerification(startPrice, initialSupply, totalSupply, a, b, k);
+        poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b ,k);
         emit CreateShares(creatorId, poolInfo[creatorId]);
     }
 
