@@ -7,6 +7,7 @@ import {
   testWallet,
   user,
   users,
+  user1,
 } from './__setup.spec';
 import { ERRORS } from './helpers/errors';
 import { BigNumber } from 'bignumber.js';
@@ -130,7 +131,16 @@ makeSuiteCleanRoom('takoKeysV1', () => {
         console.log("----------------------------");
         await expect(takoKeysV1.connect(user).sellShares([0],0)).to.not.reverted
       })
-      //TODO: sell others token
+      it('Should fail to sell Share of others token', async () => {
+        await expect(takoKeysV1.connect(user1).sellShares([0], 0)).to.reverted 
+      })
+      it('Should fail to sell Share if price not in range', async () => {
+        await expect(takoKeysV1.connect(user).sellShares([0], 100000000)).to.reverted
+      })
+      it('Should fail to sell Share if empty', async () => {
+        await expect(takoKeysV1.connect(user).sellShares([], 0)).to.reverted
+      }
+      )
     })
   });
 
