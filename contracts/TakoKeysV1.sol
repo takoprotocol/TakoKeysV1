@@ -133,14 +133,23 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
         require(creator == msg.sender, "Not creator");
-        _creatParamsVerification(startPrice, initialSupply, totalSupply, a, b, k);
-        poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b ,k);
+        _creatParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
+        poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b ,k , true);
         emit CreateShares(creatorId, poolInfo[creatorId]);
     }
 
-    function _creatParamsVerification(uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, uint256 k) internal pure {
+    function _creatParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, uint256 k) internal view {
+        _isCreatedVerification(creatorId);
         require(sharesAmount > 0, "incorrect sharesAmount");
         require(a * idoAmount * idoAmount + b * idoAmount + k >= idoPrice, "incorrect curve params");
+    }
+
+    function _isCreatedVerification(uint256 creatorId) internal view {
+        require(poolInfo[creatorId].isCreated == false, "pool has been created");
+    }
+
+    function _isNotCreatedVerification(uint256 creatorId) internal view {
+        require(poolInfo[creatorId].isCreated == true, "pool not created");
     }
 
     function buyShares(uint256 creatorId, uint256 amount) external payable nonReentrant() {
@@ -257,6 +266,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     function _getBuyPriceByPiecewise(uint256 creatorId, uint256 amount) internal view returns (uint256) {
         uint256 supply = sharesSupply[creatorId];
         poolParams memory info = poolInfo[creatorId];
+        _isNotCreatedVerification(creatorId);
         uint256 price = 0;
         require(supply + amount <= info.sharesAmount, "incorrect buy amount");
         if(supply + amount <= info.idoAmount){
@@ -276,6 +286,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     function _getSellPriceByPiecewise(uint256 creatorId, uint256 amount) internal view returns (uint256) {
         uint256 supply = sharesSupply[creatorId];
         poolParams memory info = poolInfo[creatorId];
+        _isNotCreatedVerification(creatorId);
         uint256 price = 0;
         if(supply <= info.idoAmount){
             price = _getPriceOnConstant(amount, info);

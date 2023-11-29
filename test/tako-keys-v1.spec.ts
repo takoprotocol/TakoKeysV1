@@ -88,15 +88,19 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       ).to.not.reverted;
     });
   });
-  context('User AMM Create', () => {
+  context('User Create', () => {
     beforeEach(async () => {
       await init();
     });
     it('Should success to create pool', async () => {
       await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10, 0, 10000)).to.not.reverted;
     })
+    it('Should fail due to pool has been created', async () => {
+      await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10, 0, 10000);
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 10, 0, 10000)).to.revertedWith(ERRORS.POOL_CREATED);
+    })
   });
-  context('User buy by AMM', () => {
+  context('User buy', () => {
     before(async () => {
       await init();
       await initCreate();
@@ -115,7 +119,7 @@ makeSuiteCleanRoom('takoKeysV1', () => {
         await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 10053000})).to.not.reverted
       })
   })
-  context('User sell by AMM', () => {
+  context('User sell', () => {
     before(async () =>{
       await init();
       await initBuy();
@@ -188,6 +192,5 @@ async function initCreate() {
 }
 
 async function initBuy() {
-  await initCreate();
   await takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 10053000});
 }

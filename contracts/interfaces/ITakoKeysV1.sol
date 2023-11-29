@@ -60,5 +60,6 @@ interface ITakoKeysV1 {
         uint256 a;
         uint256 b;
         uint256 k;
+        bool isCreated;
     }
 }
