@@ -104,6 +104,11 @@ This contract is licensed under the AGPL-3.0 license. Please ensure compliance w
 
 Try running some of the following tasks:
 
+### Contract Address
+
+Contract: 0xdBD62fdd13719417189DA2C7E2f8064dCDC0Ac20
+NFT: 0x106484C61F2893C134E8E801C468E5A448ed150f
+
 ```shell
 npx hardhat help
 npx hardhat test

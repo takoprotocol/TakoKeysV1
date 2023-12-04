@@ -39,6 +39,8 @@ interface ITakoKeysV1 {
 
     function createSharesForPiecewise(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint sharesAmount, uint256 a, uint256 b, uint256 k) external;
 
+    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k, uint256 shareNumber) external;
+    
     function buyShares(uint256 creatorId, uint256 amount) external payable;
     
     function sellShares(uint256[] memory tokenIds, uint256 priceLimit) external;
