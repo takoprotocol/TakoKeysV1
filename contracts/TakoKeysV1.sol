@@ -130,6 +130,10 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     }
 
     function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k) public nonReentrant {
+        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
+    }
+
+    function _createSharesForPiecewiseImp(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k) internal {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
         require(creator == msg.sender, "Not creator");
@@ -137,10 +141,9 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b ,k , true);
         emit CreateShares(creatorId, poolInfo[creatorId]);
     }
-
-    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k, uint256 shareNumber) external payable nonReentrant {
-        createSharesForPiecewise(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
-        buyShares(creatorId, shareNumber);
+    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k, uint256 sharesAmount) external payable nonReentrant {
+        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
+        _buySharesImp(creatorId, sharesAmount);
     }
 
     function _creatParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, uint256 k) internal view {
@@ -157,16 +160,20 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         require(poolInfo[creatorId].isCreated == true, "pool not created");
     }
 
-    function buyShares(uint256 creatorId, uint256 amount) public payable nonReentrant() {
+    function buyShares(uint256 creatorId, uint256 sharesAmount) public payable nonReentrant() {
+        _buySharesImp(creatorId, sharesAmount);
+    }
+
+    function _buySharesImp(uint256 creatorId, uint256 sharesAmount) internal {
         address creator = _getCreatorById(creatorId);
         uint256 supply = sharesSupply[creatorId];
-        fees memory fee = _calculateFeesForPiecewise(creatorId, amount, true);
+        fees memory fee = _calculateFeesForPiecewise(creatorId, sharesAmount, true);
         require(msg.value >= fee.price , "Insufficient payment");
-        sharesSupply[creatorId] += amount;
+        sharesSupply[creatorId] += sharesAmount;
         userClaimable[creator] += fee.creatorFee;
         uint256[] memory tokenIds = farcasterKey.mint(
             msg.sender, 
-            amount, 
+            sharesAmount, 
             creatorId
         );
         (bool success, ) = protocolFeeDestination.call{value: fee.protocolFee}("");
@@ -175,10 +182,10 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
             msg.sender,
             creatorId,
             true,
-            amount,
+            sharesAmount,
             tokenIds,
             fee,
-            supply + amount
+            supply + sharesAmount
         );
     }
 

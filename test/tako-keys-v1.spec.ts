@@ -18,6 +18,7 @@ let creatorOwner = users[0];
 let creatorOwner1 = users[1];
 let relayer = testWallet;
 const CREATOR_ID = 1;
+const CREATOR_ID_A = 2;
 const CREATOR_NOT_EXIST = 10;
 const FEE_PERCENT = new BigNumber(0.05).shiftedBy(18);
 makeSuiteCleanRoom('takoKeysV1', () => {
@@ -94,6 +95,9 @@ makeSuiteCleanRoom('takoKeysV1', () => {
     });
     it('Should success to create pool', async () => {
       await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10, 0, 10000)).to.not.reverted;
+    })
+    it('Should success to create pool and buy', async () => {
+      await expect(takoKeysV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10, 0, 10000, 3, {value: 50000})).to.not.reverted;
     })
     it('Should fail due to pool has been created', async () => {
       await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10, 0, 10000);
