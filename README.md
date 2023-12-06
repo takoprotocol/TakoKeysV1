@@ -81,7 +81,7 @@ f(x) = ax^2 + k
 $$
 Here, the values of a and k are computed given the InitialSupply, TotalSupply, StartPrice, HighestPrice
 
-Let y1 = TotalSupply, y2 = InitialSupply, X1 = HighestPrice, x2 = StartPrice
+Let y1 = HighestPrice, y2 = StartPrice, X1 = TotalSupply, x2 = InitialSupply
 Then
 $$
 a = (y1 - y2) / (x1^2 - x2^2)
@@ -107,6 +107,7 @@ Try running some of the following tasks:
 ### Contract Address
 
 Contract: 0xdBD62fdd13719417189DA2C7E2f8064dCDC0Ac20
+
 NFT: 0x106484C61F2893C134E8E801C468E5A448ed150f
 
 ```shell
