@@ -321,14 +321,14 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
 
     function _getPriceOnCurve(uint256 supplyAmount, uint256 changeAmount, poolParams memory info) view internal returns (uint256){
         uint256 sum1 = 
-        info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6 / DECIMAL +
-        info.b * ( supplyAmount * (supplyAmount + 1) / 2 / DECIMAL) +
-        info.k * supplyAmount / DECIMAL;
+        (info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6 +
+        info.b * ( supplyAmount * (supplyAmount + 1) / 2 ) +
+        info.k * supplyAmount) / DECIMAL;
         supplyAmount += changeAmount;
         uint256 sum2 =
-        info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/ 6 / DECIMAL+
-        info.b * ( supplyAmount * (supplyAmount + 1) / 2 / DECIMAL) +
-        info.k * supplyAmount / DECIMAL;
+        (info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/ 6 +
+        info.b * ( supplyAmount * (supplyAmount + 1) / 2 ) +
+        info.k * supplyAmount) / DECIMAL;
         return sum2 - sum1;
     }
 

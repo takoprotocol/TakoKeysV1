@@ -42,6 +42,9 @@ const deployContract = async () => {
   methodName = 'setCreatorSellFeePercent';
   result = await contract[methodName](...feeArgs, options);
   console.log('setCreatorSellFeePercent done', result);
+
+  const propertyValue = await contract.farcasterKey();
+  console.log("Value of myPublicProperty:", propertyValue.toString());
 };
 
 deployContract();

@@ -115,5 +115,6 @@ npx hardhat help
 npx hardhat test
 REPORT_GAS=true npx hardhat test
 npx hardhat node
-npx hardhat deploy --network optestnet
+npx hardhat run scripts/deploy.ts --network optimism
+npx hardhat run scripts/deploy.ts --network optestnet
 ```
