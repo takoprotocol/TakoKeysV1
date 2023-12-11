@@ -169,10 +169,11 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         address creator = _getCreatorById(creatorId);
         uint256 supply = sharesSupply[creatorId];
         fees memory fee = _calculateFeesForPiecewise(creatorId, sharesAmount, true);
-        require(msg.value >= fee.price , "Insufficient payment");
+        uint256 totalFee = fee.price + fee.creatorFee + fee.protocolFee;
+        require(msg.value >=  totalFee, "Insufficient payment");
         // Refund if overpaid
-        if (msg.value > fee.price) {
-            payable(msg.sender).transfer(msg.value - fee.price);
+        if (msg.value > totalFee) {
+            payable(msg.sender).transfer(msg.value - totalFee);
         }
         sharesSupply[creatorId] += sharesAmount;
         userClaimable[creator] += fee.creatorFee;
