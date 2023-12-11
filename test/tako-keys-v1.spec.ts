@@ -94,14 +94,17 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       await init();
     });
     it('Should success to create pool', async () => {
-      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10, 0, 10000)).to.not.reverted;
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, 10000 * 10**8)).to.not.reverted;
     })
     it('Should success to create pool and buy', async () => {
-      await expect(takoKeysV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10, 0, 10000, 3, {value: 50000})).to.not.reverted;
+      await expect(takoKeysV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10 * 10**8, 0, 10000 * 10**8, 3, {value: 50000})).to.not.reverted;
     })
     it('Should fail due to pool has been created', async () => {
-      await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10, 0, 10000);
-      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 10, 0, 10000)).to.revertedWith(ERRORS.POOL_CREATED);
+      await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, 10000 * 10**8);
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 10 * 10**8, 0, 10000 * 10**8)).to.revertedWith(ERRORS.POOL_CREATED);
+    })
+    it('Should fail due to CREATOR ID not exist', async () => {
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_NOT_EXIST, 10000, 5, 50 , 10* 10**8, 0, 10000 * 10**8)).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO);
     })
   });
   context('User buy', () => {
@@ -111,6 +114,7 @@ makeSuiteCleanRoom('takoKeysV1', () => {
     })
       it('Should success to buy Shares', async () => {
         await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 4, {value: 420000})).to.not.reverted
+        //console.log(await hre.ethers.provider.getBalance(user.getAddress()));
       })
       it('Should fail to buy with insufficient token', async () => {
         await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 1, {value: 1})).to.revertedWith(ERRORS.INSUFFICIENT_PAYMENT)
@@ -135,8 +139,6 @@ makeSuiteCleanRoom('takoKeysV1', () => {
         await expect(takoKeysV1.connect(user).sellShares([...Array(8).keys()].slice(1),0)).to.not.reverted
       })
       it('Should success to sell Share on constant only',async () => {
-        await takoKeysV1.connect(user).sellShares([...Array(8).keys()].slice(1),0);
-        console.log("----------------------------");
         await expect(takoKeysV1.connect(user).sellShares([0],0)).to.not.reverted
       })
       it('Should fail to sell Share of others token', async () => {
@@ -192,7 +194,7 @@ async function init() {
 
 async function initCreate() {
   //id, idoPrice, idoAmount, sharesAmount, a, k
-  await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10, 0, 10000)).to.not.reverted;
+  await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, 10000 * 10**8)).to.not.reverted;
 }
 
 async function initBuy() {

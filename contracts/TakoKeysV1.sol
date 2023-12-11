@@ -26,6 +26,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     uint256 public creatorBuyFeePercent;
     uint256 public creatorSellFeePercent;
     uint256 public constant MAX_FEE_PERCENT = 1 ether / 10; 
+    uint256 public DECIMAL = 10**8;
 
     mapping(uint256 => uint256) public sharesSupply;
     mapping(address => uint256) public userClaimable;
@@ -169,6 +170,10 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         uint256 supply = sharesSupply[creatorId];
         fees memory fee = _calculateFeesForPiecewise(creatorId, sharesAmount, true);
         require(msg.value >= fee.price , "Insufficient payment");
+        // Refund if overpaid
+        if (msg.value > fee.price) {
+            payable(msg.sender).transfer(msg.value - fee.price);
+        }
         sharesSupply[creatorId] += sharesAmount;
         userClaimable[creator] += fee.creatorFee;
         uint256[] memory tokenIds = farcasterKey.mint(
@@ -314,16 +319,16 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         return price;
     }
 
-    function _getPriceOnCurve(uint256 supplyAmount, uint256 changeAmount, poolParams memory info) pure internal returns (uint256){
+    function _getPriceOnCurve(uint256 supplyAmount, uint256 changeAmount, poolParams memory info) view internal returns (uint256){
         uint256 sum1 = 
-        info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/6 +
-        info.b * ( supplyAmount * (supplyAmount + 1) / 2) +
-        info.k * supplyAmount;
+        info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6 / DECIMAL +
+        info.b * ( supplyAmount * (supplyAmount + 1) / 2 / DECIMAL) +
+        info.k * supplyAmount / DECIMAL;
         supplyAmount += changeAmount;
         uint256 sum2 =
-        info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/6 +
-        info.b * ( supplyAmount * (supplyAmount + 1) / 2) +
-        info.k * supplyAmount;
+        info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/ 6 / DECIMAL+
+        info.b * ( supplyAmount * (supplyAmount + 1) / 2 / DECIMAL) +
+        info.k * supplyAmount / DECIMAL;
         return sum2 - sum1;
     }
 
