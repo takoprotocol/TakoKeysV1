@@ -134,6 +134,11 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
     }
 
+    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k, uint256 sharesAmount) external payable nonReentrant {
+        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
+        _buySharesImp(creatorId, sharesAmount);
+    }
+
     function _createSharesForPiecewiseImp(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k) internal {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
@@ -141,10 +146,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         _creatParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
         poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b ,k , true);
         emit CreateShares(creatorId, poolInfo[creatorId]);
-    }
-    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k, uint256 sharesAmount) external payable nonReentrant {
-        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
-        _buySharesImp(creatorId, sharesAmount);
     }
 
     function _creatParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, uint256 k) internal view {
@@ -247,6 +248,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
     }
 
     function _calculateFeesForPiecewise(uint256 creatorId, uint256 amount, bool isBuy) internal view returns (fees memory) {
+        require(amount > 0, "Amount not correct");
         if(isBuy){
             uint256 price = _getBuyPriceByPiecewise(creatorId, amount);
             return fees(price, (price * protocolBuyFeePercent) / 1 ether, (price * creatorBuyFeePercent) / 1 ether);

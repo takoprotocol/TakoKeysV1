@@ -88,7 +88,8 @@ makeSuiteCleanRoom('takoKeysV1', () => {
           .setCreatorSellFeePercent(FEE_PERCENT.toFixed())
       ).to.not.reverted;
     });
-  });
+  })
+
   context('User Create', () => {
     beforeEach(async () => {
       await init();
@@ -106,7 +107,8 @@ makeSuiteCleanRoom('takoKeysV1', () => {
     it('Should fail due to CREATOR ID not exist', async () => {
       await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_NOT_EXIST, 10000, 5, 50 , 10* 10**8, 0, 10000 * 10**8)).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO);
     })
-  });
+  })
+
   context('User buy', () => {
     before(async () => {
       await init();
@@ -130,6 +132,7 @@ makeSuiteCleanRoom('takoKeysV1', () => {
         await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 123035})).to.not.reverted
       })
   })
+
   context('User sell', () => {
     before(async () =>{
       await init();
@@ -166,6 +169,13 @@ makeSuiteCleanRoom('takoKeysV1', () => {
         ERRORS.ZERO_CLAIMABLE
       );
     });
+    // 113630 / 11 / 2 = 5165
+    it('claim amount check', async () => {
+      expect(await takoKeysV1.connect(creatorOwner).userClaimable(creatorOwner.getAddress())).to.equal(5165);
+    })
+    it('claim amount check should be zero', async () => {
+      expect(await takoKeysV1.connect(creatorOwner1).userClaimable(creatorOwner1.getAddress())).to.equal(0);
+    })
     it('Should success to claim', async () => {
       expect(
         await takoKeysV1
@@ -174,6 +184,18 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       ).to.not.reverted;
     });
   });
+
+  context('Quire check', async () => {
+    before(async () => {
+      await init();
+    });
+    it("get buy price check", async () => {
+      expect(await takoKeysV1.connect(creatorOwner).getBuyPrice(CREATOR_ID, 1)).to.equal(11210);
+    });
+    it("get sell price check", async () => {
+      expect(await takoKeysV1.connect(creatorOwner).getSellPrice(CREATOR_ID, 1)).to.equal(11000);
+    })
+  })
 
 async function init() {
   relayer = testWallet;
@@ -192,10 +214,12 @@ async function init() {
   await takoKeysV1
     .connect(deployer)
     .setCreatorSellFeePercent(FEE_PERCENT.toFixed());
+  await takoKeysV1
+    .connect(deployer)
+    .setFeeDestination(deployer.getAddress());
 }
 
 async function initCreate() {
-  //id, idoPrice, idoAmount, sharesAmount, a, k
   await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, 10000 * 10**8)).to.not.reverted;
 }
 

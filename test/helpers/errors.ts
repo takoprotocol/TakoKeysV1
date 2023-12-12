@@ -5,6 +5,7 @@ export const ERRORS = {
   POOL_CREATED: "pool has been created",  
   OPEN_NOT_INIT: "create shares not start",
   INSUFFICIENT_SHARES: "Insufficient shares",
+  INCORRECT_AMOUNT: "Amount not correct",
   ZERO_CLAIMABLE: "Zero claimable",
   CREATOR_CAN_NOT_BE_ZERO: "Creator can not be zero",
   NOT_OWNER_OR_APPROVED: "ERC721: caller is not token owner or approved",
