@@ -130,28 +130,33 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         return price - protocolFee - creatorFee;
     }
 
-    function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k) public nonReentrant {
-        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
+    function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) public nonReentrant {
+        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
     }
 
-    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k, uint256 sharesAmount) external payable nonReentrant {
-        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
+    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk, uint256 sharesAmount) external payable nonReentrant {
+        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
         _buySharesImp(creatorId, sharesAmount);
     }
 
-    function _createSharesForPiecewiseImp(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k) internal {
+    function _createSharesForPiecewiseImp(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
         require(creator == msg.sender, "Not creator");
-        _creatParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, k);
-        poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b ,k , true);
+        _creatParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
+        poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk ,true);
         emit CreateShares(creatorId, poolInfo[creatorId]);
     }
 
-    function _creatParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, uint256 k) internal view {
+    function _creatParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {
         _isCreatedVerification(creatorId);
         require(sharesAmount > 0, "incorrect sharesAmount");
-        require(a * idoAmount * idoAmount + b * idoAmount + k >= idoPrice, "incorrect curve params");
+        uint256 result = calculate(
+            calculate(a * idoAmount * idoAmount, b * idoAmount, signOfb), 
+            k, 
+            signOfk
+        );
+        require(result >= idoPrice, "incorrect curve params");
     }
 
     function _isCreatedVerification(uint256 creatorId) internal view {
@@ -324,14 +329,32 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
 
     function _getPriceOnCurve(uint256 supplyAmount, uint256 changeAmount, poolParams memory info) view internal returns (uint256){
         uint256 sum1 = 
+        calculate(
+            calculate
+                (
+                    info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6, 
+                    info.b * ( supplyAmount * (supplyAmount + 1) / 2 ), 
+                    info.signOfb
+                ),
+                info.k * supplyAmount, 
+                info.signOfk
+        ) / DECIMAL;
+
         (info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6 +
         info.b * ( supplyAmount * (supplyAmount + 1) / 2 ) +
         info.k * supplyAmount) / DECIMAL;
         supplyAmount += changeAmount;
         uint256 sum2 =
-        (info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))/ 6 +
-        info.b * ( supplyAmount * (supplyAmount + 1) / 2 ) +
-        info.k * supplyAmount) / DECIMAL;
+        calculate(
+            calculate
+                (
+                    info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6, 
+                    info.b * ( supplyAmount * (supplyAmount + 1) / 2 ), 
+                    info.signOfb
+                ),
+                info.k * supplyAmount, 
+                info.signOfk
+        ) / DECIMAL;
         return sum2 - sum1;
     }
 
@@ -345,5 +368,9 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         address creator = farcasterHub.custodyOf(creatorId);
         require(creator != address(0), "Creator can not be zero");
         return creator;
+    }
+
+    function calculate(uint256 a, uint256 b, bool shouldAdd) public pure returns (uint256) {
+        return shouldAdd ? a + b : a - b;
     }
 }

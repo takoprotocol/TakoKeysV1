@@ -32,8 +32,6 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npm run compile && TRACK_GAS=true REPORT_GAS=true hardhat test",
-    "quick-test": "REPORT_GAS=true hardhat test",
-    "run-test:jamLens": "npx hardhat run scripts/cli_jamfrens_keys_v1.ts --network TestNet",
-    "run-main:jamLens": "npx hardhat run scripts/cli_jamfrens_keys_v1.ts --network MainNet"
+    "quick-test": "REPORT_GAS=true hardhat test"
   }
 }

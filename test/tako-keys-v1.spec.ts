@@ -95,17 +95,17 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       await init();
     });
     it('Should success to create pool', async () => {
-      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, 10000 * 10**8)).to.not.reverted;
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true)).to.not.reverted;
     })
     it('Should success to create pool and buy', async () => {
-      await expect(takoKeysV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10 * 10**8, 0, 10000 * 10**8, 3, {value: 50000})).to.not.reverted;
+      await expect(takoKeysV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true, 3, {value: 50000})).to.not.reverted;
     })
     it('Should fail due to pool has been created', async () => {
-      await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, 10000 * 10**8);
-      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 10 * 10**8, 0, 10000 * 10**8)).to.revertedWith(ERRORS.POOL_CREATED);
+      await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true,);
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 10 * 10**8,  0, true, 10000 * 10**8, true)).to.revertedWith(ERRORS.POOL_CREATED);
     })
     it('Should fail due to CREATOR ID not exist', async () => {
-      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_NOT_EXIST, 10000, 5, 50 , 10* 10**8, 0, 10000 * 10**8)).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO);
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_NOT_EXIST, 10000, 5, 50 , 10* 10**8, 0, true, 10000 * 10**8, true)).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO);
     })
   })
 
@@ -220,7 +220,7 @@ async function init() {
 }
 
 async function initCreate() {
-  await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, 10000 * 10**8)).to.not.reverted;
+  await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true)).to.not.reverted;
 }
 
 async function initBuy() {

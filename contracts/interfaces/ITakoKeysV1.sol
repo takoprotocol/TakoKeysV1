@@ -37,9 +37,9 @@ interface ITakoKeysV1 {
         uint256 amount
     ) external view returns (uint256);
 
-    function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint totalSupply, uint256 a, uint256 b, uint256 k) external;
+    function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint totalSupply, uint256 a,  uint256 b, bool signOfb, uint256 k, bool signOfk) external;
 
-    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, uint256 k, uint256 shareNumber) external payable;
+    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a,  uint256 b, bool signOfb, uint256 k, bool signOfk, uint256 shareNumber) external payable;
 
     function buyShares(uint256 creatorId, uint256 amount) external payable;
     
@@ -61,7 +61,9 @@ interface ITakoKeysV1 {
         uint256 sharesAmount;
         uint256 a;
         uint256 b;
+        bool signOfb;
         uint256 k;
+        bool signOfk;
         bool isCreated;
     }
 }
