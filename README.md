@@ -65,9 +65,12 @@ uint256 initialSupply,
 uint256 totalSupply, 
 uint256 a, 
 uint256 b, 
-uint256 k
+bool signOfb,
+uint256 k,
+bool signOfk
 ```
 The precision of the parameters a, b, k is 8. For example, if you want to input 1.55 as the parameter a, then a should be set as 1.55 * 10**8 = 155000000.
+signOfb, signOfk means the sign of parameters 'b', 'k', true represent positive, false represent negative.
 Here, creatorId corresponds to the Fid associated with the user's address,
 startPrice corresponds to StartPrice, initialSupply corresponds to the InitialSupply input on the front end, and totalSupply corresponds to TotalSupply.
 

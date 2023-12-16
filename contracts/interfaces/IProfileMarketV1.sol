@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-interface ITakoKeysV1 {
+interface IProfileMarketV1 {
     function userClaimable(address user) external view returns(uint256);
 
     function setFeeDestination(address _feeDestination) external;

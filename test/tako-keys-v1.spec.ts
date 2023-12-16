@@ -12,7 +12,6 @@ import {
 import { ERRORS } from './helpers/errors';
 import { BigNumber } from 'bignumber.js';
 import { ethers } from 'hardhat';
-import { async } from './shared/utils';
 
 let creatorOwner = users[0];
 let creatorOwner1 = users[1];
@@ -21,7 +20,7 @@ const CREATOR_ID = 1;
 const CREATOR_ID_A = 2;
 const CREATOR_NOT_EXIST = 10;
 const FEE_PERCENT = new BigNumber(0.05).shiftedBy(18);
-makeSuiteCleanRoom('takoKeysV1', () => {
+makeSuiteCleanRoom('ProfileMarketV1', () => {
   context('Gov', () => {
     beforeEach(async () => {
       await init();
@@ -98,7 +97,7 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true)).to.not.reverted;
     })
     it('Should success to create pool and buy', async () => {
-      await expect(takoKeysV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true, 3, {value: 50000})).to.not.reverted;
+      await expect(takoKeysV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true, 3, {value: 33000})).to.not.reverted;
     })
     it('Should fail due to pool has been created', async () => {
       await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true,);
@@ -106,6 +105,10 @@ makeSuiteCleanRoom('takoKeysV1', () => {
     })
     it('Should fail due to CREATOR ID not exist', async () => {
       await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_NOT_EXIST, 10000, 5, 50 , 10* 10**8, 0, true, 10000 * 10**8, true)).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO);
+    })
+    it('Should success to create pool with negative signs', async () => {
+      await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 500 * 10**8, 0, true, 500 * 10**8, false)).to.not.reverted;
+      await expect(takoKeysV1.connect(creatorOwner).buyShares(CREATOR_ID, 6, {value: 74250})).to.not.reverted;
     })
   })
 
@@ -115,21 +118,24 @@ makeSuiteCleanRoom('takoKeysV1', () => {
       await initCreate();
     })
       it('Should success to buy Shares', async () => {
-        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 2, {value: 22000})).to.not.reverted
-        //console.log(await hre.ethers.provider.getBalance(user.getAddress()));
+        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 2, {value: 22000})).to.not.reverted;
       })
       it('Should fail to buy with insufficient token', async () => {
         await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 2, {value: 21999})).to.revertedWith(ERRORS.INSUFFICIENT_PAYMENT)
       })
       it('Should success to buy for constant and curve price both', async () => {
-        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 113630})).to.not.reverted
+        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 113630})).to.not.reverted;
       })
       it('Should fail to buy with insufficient token', async () => {
         await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 113629})).to.revertedWith(ERRORS.INSUFFICIENT_PAYMENT)
       })
       it('Should success to buy for curve price', async () => {
         await takoKeysV1.connect(user).buyShares(CREATOR_ID, 5, {value: 55000});
-        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 123035})).to.not.reverted
+        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 10, {value: 123035})).to.not.reverted;
+      })
+      it('Should success to buy for both', async () => {
+        await takoKeysV1.connect(user).buyShares(CREATOR_ID, 1, {value: 11000});
+        await expect(takoKeysV1.connect(user).buyShares(CREATOR_ID, 9, {value: 102630})).to.not.reverted;
       })
   })
 
@@ -148,7 +154,8 @@ makeSuiteCleanRoom('takoKeysV1', () => {
         await expect(takoKeysV1.connect(user).sellShares([...Array(10).keys()],92971)).to.revertedWith(ERRORS.PRICE_NOT_IN_RANGE);
       })
       it('Should success to sell Share on constant only',async () => {
-        await expect(takoKeysV1.connect(user).sellShares([0],0)).to.not.reverted
+        await takoKeysV1.connect(user).sellShares([...Array(9).keys()], 83970);
+        await expect(takoKeysV1.connect(user).sellShares([9],9000)).to.not.reverted
       })
       it('Should fail to sell Share of others token', async () => {
         await expect(takoKeysV1.connect(user1).sellShares([0], 0)).to.reverted 

@@ -7,7 +7,7 @@ import "./access/Ownable.sol";
 import "./assets/FarcasterKey.sol";
 import "./interfaces/IIdRegistry.sol";
 import "./interfaces/IFarcasterKey.sol";
-import "./interfaces/ITakoKeysV1.sol";
+import "./interfaces/IProfileMarketV1.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "hardhat/console.sol";
 
-contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
+contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
     IFarcasterKey public immutable farcasterKey;
     IIdRegistry public immutable farcasterHub;
 
@@ -143,14 +143,20 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
         require(isOpenInit == true, 'create shares not start');
         address creator = _getCreatorById(creatorId);
         require(creator == msg.sender, "Not creator");
-        _creatParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
+        _createParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
         poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk ,true);
         emit CreateShares(creatorId, poolInfo[creatorId]);
     }
 
-    function _creatParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {
+    function _createParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {
         _isCreatedVerification(creatorId);
         require(sharesAmount > 0, "incorrect sharesAmount");
+        if(a == 0){
+            require(signOfb, "incorrect curve params");
+        }
+        if(!signOfb){
+            require(b / (2 * a) < idoAmount, "incorrect curve params");
+        }
         uint256 result = calculate(
             calculate(a * idoAmount * idoAmount, b * idoAmount, signOfb), 
             k, 
@@ -300,7 +306,7 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
             price = _getPriceOnCurve(supply, amount, info);
         }else{
             uint256 amountForCurve = amount + supply - info.idoAmount;
-            uint256 amountForConstant =  amount + supply - amountForCurve;
+            uint256 amountForConstant =  amount - amountForCurve;
             uint256 constantPrice = _getPriceOnConstant(amountForConstant, info);
             uint256 curvePrice = _getPriceOnCurve(info.idoAmount, amountForCurve, info);
             price = constantPrice + curvePrice;
@@ -339,10 +345,6 @@ contract TakoKeysV1 is ITakoKeysV1, Ownable, ReentrancyGuard {
                 info.k * supplyAmount, 
                 info.signOfk
         ) / DECIMAL;
-
-        (info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6 +
-        info.b * ( supplyAmount * (supplyAmount + 1) / 2 ) +
-        info.k * supplyAmount) / DECIMAL;
         supplyAmount += changeAmount;
         uint256 sum2 =
         calculate(

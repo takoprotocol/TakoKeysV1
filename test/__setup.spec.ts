@@ -61,7 +61,7 @@ async function initAccount() {
 async function initContract() {
   await initFarcasterMock();
   const takoV1Factory = await hre.ethers.getContractFactory(
-    "TakoKeysV1"
+    "ProfileMarketV1"
   );
   takoKeysV1 = (await takoV1Factory
     .connect(deployer)
