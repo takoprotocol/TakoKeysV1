@@ -110,6 +110,10 @@ makeSuiteCleanRoom('ProfileMarketV1', () => {
       await expect(takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 500 * 10**8, 0, true, 500 * 10**8, false)).to.not.reverted;
       await expect(takoKeysV1.connect(creatorOwner).buyShares(CREATOR_ID, 6, {value: 74250})).to.not.reverted;
     })
+    it('test for decimal', async () =>{
+      await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 0, 3, 400, 625035158000000, 0 , true, 5625280000000000, false);
+      expect(await takoKeysV1.connect(creatorOwner).getBuyPrice(CREATOR_ID, 5)).to.equals(143758814);
+    })
   })
 
   context('User buy', () => {

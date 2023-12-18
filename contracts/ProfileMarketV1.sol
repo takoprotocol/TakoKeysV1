@@ -334,30 +334,18 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
     }
 
     function _getPriceOnCurve(uint256 supplyAmount, uint256 changeAmount, poolParams memory info) view internal returns (uint256){
-        uint256 sum1 = 
+        uint256 afterSupplyAmount = supplyAmount + changeAmount;
+        uint256 sum =
         calculate(
-            calculate
-                (
-                    info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6, 
-                    info.b * ( supplyAmount * (supplyAmount + 1) / 2 ), 
-                    info.signOfb
-                ),
-                info.k * supplyAmount, 
-                info.signOfk
-        ) / DECIMAL;
-        supplyAmount += changeAmount;
-        uint256 sum2 =
-        calculate(
-            calculate
-                (
-                    info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1)) / 6, 
-                    info.b * ( supplyAmount * (supplyAmount + 1) / 2 ), 
-                    info.signOfb
-                ),
-                info.k * supplyAmount, 
-                info.signOfk
-        ) / DECIMAL;
-        return sum2 - sum1;
+            calculate(
+                (info.a * ( afterSupplyAmount * (afterSupplyAmount + 1) * (2 * afterSupplyAmount + 1))
+                - info.a * ( supplyAmount * (supplyAmount + 1) * (2 * supplyAmount + 1))) 
+                / (6 * DECIMAL)
+                , (info.b * ( afterSupplyAmount * (afterSupplyAmount + 1) / 2 ) - info.b * ( supplyAmount * (supplyAmount + 1) / 2 )) / DECIMAL
+                , info.signOfb)
+            , (info.k * afterSupplyAmount - info.k * supplyAmount) / DECIMAL
+            , info.signOfk);
+        return sum;
     }
 
     function _getPriceOnConstant(uint256 changeAmount, poolParams memory info) pure internal returns (uint256){
