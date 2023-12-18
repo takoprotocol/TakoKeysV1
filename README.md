@@ -98,6 +98,11 @@ $$
 For k, we round down to get k'
 
 In the contract input, a corresponds to a', k corresponds to k', and b is taken as 0.
+Additional constraints for the parameters:
+$$
+-b / (2a) < idoAmount; 
+a * idoAmount^2 + b * idoAmount + k >= idoPrice;
+$$
 
 ### Disclaimer
 This contract is provided "as is" without any warranty of any kind, either express or implied. Users are responsible for conducting their own due diligence and seeking professional advice if necessary before interacting with the contract on the blockchain.

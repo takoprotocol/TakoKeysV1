@@ -151,9 +151,7 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
     function _createParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {
         _isCreatedVerification(creatorId);
         require(sharesAmount > 0, "incorrect sharesAmount");
-        if(a == 0){
-            require(signOfb, "incorrect curve params");
-        }
+        require(a > 0, "incorrect curve params");
         if(!signOfb){
             require(b / (2 * a) < idoAmount, "incorrect curve params");
         }
@@ -361,6 +359,9 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
     }
 
     function calculate(uint256 a, uint256 b, bool shouldAdd) public pure returns (uint256) {
+        if(!shouldAdd){
+            require(a >= b, "calculate underflow");
+        }
         return shouldAdd ? a + b : a - b;
     }
 }
