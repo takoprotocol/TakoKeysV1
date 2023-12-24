@@ -7,7 +7,7 @@ import {
   revertToSnapshot,
   takeSnapshot,
 } from "./shared/utils";
-import { TakoKeysV1, FarcasterKey } from "../typechain-types";
+import { ProfileMarketV1, FarcasterKey } from "../typechain-types";
 import {
   FarcasterHubAbi,
   FarcasterKeyAbi
@@ -27,7 +27,7 @@ export let relayer: Signer;
 export let farcasterHubMock: FakeContract<BaseContract>;
 
 export let farcasterKey: FarcasterKey;
-export let takoKeysV1: TakoKeysV1;
+export let profileMarketV1: ProfileMarketV1;
 
 export function makeSuiteCleanRoom(name: string, tests: () => void) {
   describe(name, () => {
@@ -63,11 +63,11 @@ async function initContract() {
   const takoV1Factory = await hre.ethers.getContractFactory(
     "ProfileMarketV1"
   );
-  takoKeysV1 = (await takoV1Factory
+  profileMarketV1 = (await takoV1Factory
     .connect(deployer)
-    .deploy(farcasterHubMock.address)) as TakoKeysV1;
+    .deploy(farcasterHubMock.address)) as ProfileMarketV1;
   farcasterKey = new ethers.Contract(
-    await takoKeysV1.farcasterKey(),
+    await profileMarketV1.farcasterKey(),
     FarcasterKeyAbi,
     deployer
   ) as FarcasterKey;
