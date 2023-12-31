@@ -119,8 +119,8 @@ contract FarcasterKey is IFarcasterKey, ERC721AQueryable, Ownable2Step {
         return _totalBurned();
     }
 
-    function setBaseURI(string memory newBasURI) external onlyOwner {
-        baseURI = newBasURI;
+    function setBaseURI(string memory newBaseURI) external onlyOwner {
+        baseURI = newBaseURI;
     }
 
     function _baseURI() internal view override returns (string memory) {

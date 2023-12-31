@@ -63,6 +63,7 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
     }
 
     function setFeeDestination(address _feeDestination) external onlyOwner {
+        require(_feeDestination != address(0), "Invalid fee destination");
         protocolFeeDestination = _feeDestination;
         emit SetFeeTo(_feeDestination);
     }
@@ -148,19 +149,19 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
         emit CreateShares(creatorId, poolInfo[creatorId]);
     }
 
-    function _createParamsVerification(uint256 creatorId, uint256 idoPrice, uint256 idoAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {
+    function _createParamsVerification(uint256 creatorId, uint256 initialPrice, uint256 initialAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {
         _isCreatedVerification(creatorId);
-        require(sharesAmount > 0, "incorrect sharesAmount");
+        require(sharesAmount >= initialAmount, "incorrect sharesAmount");
         require(a > 0, "incorrect curve params");
         if(!signOfb){
-            require(b / (2 * a) < idoAmount, "incorrect curve params");
+            require(b / (2 * a) < initialAmount, "incorrect curve params");
         }
         uint256 result = calculate(
-            calculate(a * idoAmount * idoAmount, b * idoAmount, signOfb), 
+            calculate(a * initialAmount * initialAmount, b * initialAmount, signOfb), 
             k, 
             signOfk
         );
-        require(result >= idoPrice, "incorrect curve params");
+        require(result >= initialPrice, "incorrect curve params");
     }
 
     function _isCreatedVerification(uint256 creatorId) internal view {
@@ -182,8 +183,11 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
         uint256 totalFee = fee.price + fee.creatorFee + fee.protocolFee;
         require(msg.value >=  totalFee, "Insufficient payment");
         // Refund if overpaid
+        bool success0 = false;
         if (msg.value > totalFee) {
-            payable(msg.sender).transfer(msg.value - totalFee);
+            (success0, ) = payable(msg.sender).call{value: msg.value - totalFee}("");
+        }else{
+            success0 = true;
         }
         sharesSupply[creatorId] += sharesAmount;
         userClaimable[creator] += fee.creatorFee;
@@ -192,8 +196,8 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
             sharesAmount, 
             creatorId
         );
-        (bool success, ) = protocolFeeDestination.call{value: fee.protocolFee}("");
-        require(success, "Unable to send funds");
+        (bool success1, ) = protocolFeeDestination.call{value: fee.protocolFee}("");
+        require(success0 && success1, "Unable to send funds");
         emit TradeEvent(
             msg.sender,
             creatorId,
