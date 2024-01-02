@@ -183,11 +183,9 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
         uint256 totalFee = fee.price + fee.creatorFee + fee.protocolFee;
         require(msg.value >=  totalFee, "Insufficient payment");
         // Refund if overpaid
-        bool success0 = false;
+        bool success0 = true;
         if (msg.value > totalFee) {
             (success0, ) = payable(msg.sender).call{value: msg.value - totalFee}("");
-        }else{
-            success0 = true;
         }
         sharesSupply[creatorId] += sharesAmount;
         userClaimable[creator] += fee.creatorFee;
