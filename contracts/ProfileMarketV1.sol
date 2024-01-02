@@ -264,10 +264,17 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
         require(amount > 0, "Amount not correct");
         if(isBuy){
             uint256 price = _getBuyPriceByPiecewise(creatorId, amount);
-            return fees(price, (price * protocolBuyFeePercent) / 1 ether, (price * creatorBuyFeePercent) / 1 ether);
+            return fees(
+                price, 
+                (price * protocolBuyFeePercent)/ 1 ether == 0 ? 1 : (price * protocolBuyFeePercent) / 1 ether, 
+                (price * creatorBuyFeePercent) / 1 ether == 0 ? 1 : (price * creatorBuyFeePercent) / 1 ether);
         }else{
             uint256 price = _getSellPriceByPiecewise(creatorId, amount);
-            return fees(price, (price * protocolSellFeePercent) / 1 ether, (price * creatorSellFeePercent) / 1 ether);
+            return fees(
+                price, 
+                (price * protocolSellFeePercent) / 1 ether == 0 ? 1 : (price * protocolSellFeePercent) / 1 ether,
+                (price * creatorSellFeePercent) / 1 ether == 0 ? 1: (price * creatorSellFeePercent) / 1 ether
+            );
         }
     }
 
