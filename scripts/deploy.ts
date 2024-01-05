@@ -20,7 +20,7 @@ const deployContract = async () => {
   let methodName = 'setOpenInit'; // Replace with actual method name
   const args = [true]; // Replace with actual arguments
   const options = { gasLimit: 1000000 }; // Optional gas limit
-  const FEE_PERCENT = new BigNumber(0.001).shiftedBy(18);
+  const FEE_PERCENT = new BigNumber(0.05).shiftedBy(18);
 
   let result = await contract[methodName](...args, options);
   console.log('setOpenInit done', result);

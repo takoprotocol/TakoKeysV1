@@ -114,9 +114,9 @@ Try running some of the following tasks:
 
 ### Contract Address
 
-Contract: 0xdBD62fdd13719417189DA2C7E2f8064dCDC0Ac20
+Contract: 0x6Df43106F7A4Ba0D1e9653eDA49530333A6B2D98
 
-NFT: 0x106484C61F2893C134E8E801C468E5A448ed150f
+NFT: 0x6DdD627b68AAD3EDF59Bee544e62D70989FfBb65
 
 ```shell
 npx hardhat help
