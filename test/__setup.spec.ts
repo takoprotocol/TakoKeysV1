@@ -7,7 +7,7 @@ import {
   revertToSnapshot,
   takeSnapshot,
 } from "./shared/utils";
-import { TakoKeysV1, FarcasterKey } from "../typechain-types";
+import { ProfileMarketV1, FarcasterKey } from "../typechain-types";
 import {
   FarcasterHubAbi,
   FarcasterKeyAbi
@@ -27,7 +27,7 @@ export let relayer: Signer;
 export let farcasterHubMock: FakeContract<BaseContract>;
 
 export let farcasterKey: FarcasterKey;
-export let takoKeysV1: TakoKeysV1;
+export let profileMarketV1: ProfileMarketV1;
 
 export function makeSuiteCleanRoom(name: string, tests: () => void) {
   describe(name, () => {
@@ -60,15 +60,14 @@ async function initAccount() {
 
 async function initContract() {
   await initFarcasterMock();
-  //await initJamOldContractMock();
   const takoV1Factory = await hre.ethers.getContractFactory(
-    "TakoKeysV1"
+    "ProfileMarketV1"
   );
-  takoKeysV1 = (await takoV1Factory
+  profileMarketV1 = (await takoV1Factory
     .connect(deployer)
-    .deploy(farcasterHubMock.address)) as TakoKeysV1;
+    .deploy(farcasterHubMock.address)) as ProfileMarketV1;
   farcasterKey = new ethers.Contract(
-    await takoKeysV1.farcasterKey(),
+    await profileMarketV1.farcasterKey(),
     FarcasterKeyAbi,
     deployer
   ) as FarcasterKey;
@@ -78,6 +77,6 @@ async function initFarcasterMock(){
   const creatorOwner = await users[0].getAddress();
   const creatorOwner1 = await users[1].getAddress();
   farcasterHubMock = await smock.fake(FarcasterHubAbi);
-  farcasterHubMock.recoveryOf.whenCalledWith(1).returns(creatorOwner);
-  farcasterHubMock.recoveryOf.whenCalledWith(2).returns(creatorOwner1);
+  farcasterHubMock.custodyOf.whenCalledWith(1).returns(creatorOwner);
+  farcasterHubMock.custodyOf.whenCalledWith(2).returns(creatorOwner1);
 }

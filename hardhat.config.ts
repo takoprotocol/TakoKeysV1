@@ -1,8 +1,14 @@
 import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
+import * as dotenv from 'dotenv';
 import { HardhatUserConfig } from "hardhat/config";
 import { HARDHATEVM_CHAINID, NETWORKS, TEST_ACCOUNTS } from "./helpers";
+
+dotenv.config();
+
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY_SELF = process.env.PRIVATE_KEY_SELF;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -18,19 +24,18 @@ const config: HardhatUserConfig = {
       },
     ],
   },
-  // defaultNetwork: CHAIN.PolygonTestNet,
   networks: {
-    [NETWORKS.TestNet]: {
-      url: "http://localhost:24012/rpc",
-      timeout: 999999,
+    optimism: {
+      url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.OPTIMISM_MAINNET_API_KEY}`,
+      accounts: [`0x${PRIVATE_KEY}`], // Replace with your private key
       gas: "auto",
-      gasPrice: "auto",
+      gasPrice: "auto"
     },
-    [NETWORKS.Mainnet]: {
-      url: "http://localhost:24012/rpc",
-      timeout: 999999,
+    optestnet: {
+      url: `https://opt-goerli.g.alchemy.com/v2/${process.env.OPTIMISM_TESTNET_API_KEY}`,
+      accounts: [`0x${PRIVATE_KEY_SELF}`], // Replace with your private key
       gas: "auto",
-      gasPrice: "auto",
+      gasPrice: "auto"
     },
     hardhat: {
       chainId: HARDHATEVM_CHAINID,

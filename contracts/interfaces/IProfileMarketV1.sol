@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-interface ITakoKeysV1 {
+interface IProfileMarketV1 {
     function userClaimable(address user) external view returns(uint256);
 
     function setFeeDestination(address _feeDestination) external;
@@ -37,11 +37,15 @@ interface ITakoKeysV1 {
         uint256 amount
     ) external view returns (uint256);
 
-    function buySharesByAMM(uint256 creatorId, uint256 amount) external payable;
+    function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint totalSupply, uint256 a,  uint256 b, bool signOfb, uint256 k, bool signOfk) external;
 
-    function sellShareByAMM(uint256 tokenId, uint256 priceLimit) external;
+    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a,  uint256 b, bool signOfb, uint256 k, bool signOfk, uint256 shareNumber) external payable;
 
-    function sellSharesByAMM(uint256[] memory tokenIds, uint256 priceLimit) external;
+    function buyShares(uint256 creatorId, uint256 amount) external payable;
+    
+    function sellShares(uint256[] memory tokenIds, uint256 priceLimit) external;
+    
+    function sellShare(uint256 tokenId, uint256 priceLimit) external;
 
     function claim() external;
 
@@ -49,5 +53,17 @@ interface ITakoKeysV1 {
         uint256 price;
         uint256 protocolFee;
         uint256 creatorFee;
+    }
+
+    struct poolParams {
+        uint256 idoPrice;
+        uint256 idoAmount;
+        uint256 sharesAmount;
+        uint256 a;
+        uint256 b;
+        bool signOfb;
+        uint256 k;
+        bool signOfk;
+        bool isCreated;
     }
 }

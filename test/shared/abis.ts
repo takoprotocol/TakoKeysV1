@@ -7,7 +7,7 @@ export const FarcasterHubAbi = [
         type: "uint256",
       },
     ],
-    name: "recoveryOf",
+    name: "custodyOf",
     outputs: [
       {
         internalType: "address",
