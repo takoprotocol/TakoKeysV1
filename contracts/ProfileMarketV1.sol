@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 
 
 import "./access/Ownable.sol";
+import "./access/Proxy.sol";
 import "./assets/FarcasterKey.sol";
 import "./interfaces/IIdRegistry.sol";
 import "./interfaces/IFarcasterKey.sol";
@@ -15,7 +16,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 //import "hardhat/console.sol";
 
-contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
+contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
     IFarcasterKey public immutable farcasterKey;
     IIdRegistry public immutable farcasterHub;
 
@@ -51,7 +52,7 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
     event CreateShares(uint256 creatorId, poolParams info);
     event ClaimEvent(address indexed user, uint fee);
 
-    constructor(IIdRegistry _farcasterHub) {
+    constructor(IIdRegistry _farcasterHub, address _proxy) Proxy(_proxy) {
         require(address(_farcasterHub) != address(0), "invalid farcaster address");
         farcasterKey = new FarcasterKey(msg.sender);
         farcasterHub = _farcasterHub;
@@ -131,22 +132,101 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard {
         return price - protocolFee - creatorFee;
     }
 
-    function createSharesForPiecewise(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) public nonReentrant {
+    function createSharesForPiecewise(
+        uint256 creatorId, 
+        uint256 startPrice, 
+        uint256 initialSupply, 
+        uint256 totalSupply, 
+        uint256 a, 
+        uint256 b, 
+        bool signOfb, 
+        uint256 k, 
+        bool signOfk
+    ) 
+        public 
+        nonReentrant {
+        _creatorCheck(creatorId);
         _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
     }
 
-    function createSharesWithInitialBuy(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk, uint256 sharesAmount) external payable nonReentrant {
+    function createSharesForPiecewiseWithProxy(
+        uint256 creatorId, 
+        uint256 startPrice, 
+        uint256 initialSupply, 
+        uint256 totalSupply, 
+        uint256 a, 
+        uint256 b, 
+        bool signOfb, 
+        uint256 k, 
+        bool signOfk
+    ) 
+        public 
+        onlyProxy
+        nonReentrant {
+        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
+    }
+
+    function createSharesWithInitialBuy(
+        uint256 creatorId, 
+        uint256 startPrice, 
+        uint256 initialSupply, 
+        uint256 totalSupply, 
+        uint256 a, 
+        uint256 b, 
+        bool signOfb, 
+        uint256 k, 
+        bool signOfk, 
+        uint256 sharesAmount
+    ) 
+        external 
+        payable 
+        nonReentrant {
+        _creatorCheck(creatorId);
         _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
         _buySharesImp(creatorId, sharesAmount);
     }
 
-    function _createSharesForPiecewiseImp(uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal {
+    function createSharesWithInitialBuyWithProxy(
+        uint256 creatorId, 
+        uint256 startPrice, 
+        uint256 initialSupply, 
+        uint256 totalSupply, 
+        uint256 a, 
+        uint256 b, 
+        bool signOfb, 
+        uint256 k, 
+        bool signOfk, 
+        uint256 sharesAmount
+    ) 
+        external 
+        payable 
+        onlyProxy
+        nonReentrant {
+        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
+        _buySharesImp(creatorId, sharesAmount);
+    }
+
+    function _createSharesForPiecewiseImp(
+        uint256 creatorId, 
+        uint256 startPrice, 
+        uint256 initialSupply, 
+        uint256 totalSupply, 
+        uint256 a, 
+        uint256 b, 
+        bool signOfb, 
+        uint256 k, 
+        bool signOfk
+    ) 
+        internal {
         require(isOpenInit == true, 'create shares not start');
-        address creator = _getCreatorById(creatorId);
-        require(creator == msg.sender, "Not creator");
         _createParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
         poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk ,true);
         emit CreateShares(creatorId, poolInfo[creatorId]);
+    }
+
+    function _creatorCheck(uint256 creatorId) view internal{
+        address creator = _getCreatorById(creatorId);
+        require(creator == msg.sender, "Not creator");
     }
 
     function _createParamsVerification(uint256 creatorId, uint256 initialPrice, uint256 initialAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {

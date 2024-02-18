@@ -65,7 +65,7 @@ async function initContract() {
   );
   profileMarketV1 = (await takoV1Factory
     .connect(deployer)
-    .deploy(farcasterHubMock.address)) as ProfileMarketV1;
+    .deploy(farcasterHubMock.address, await deployer.getAddress())) as ProfileMarketV1;
   farcasterKey = new ethers.Contract(
     await profileMarketV1.farcasterKey(),
     FarcasterKeyAbi,
