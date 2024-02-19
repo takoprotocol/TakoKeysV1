@@ -186,26 +186,6 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
         _buySharesImp(creatorId, sharesAmount);
     }
 
-    function createSharesWithInitialBuyWithProxy(
-        uint256 creatorId, 
-        uint256 startPrice, 
-        uint256 initialSupply, 
-        uint256 totalSupply, 
-        uint256 a, 
-        uint256 b, 
-        bool signOfb, 
-        uint256 k, 
-        bool signOfk, 
-        uint256 sharesAmount
-    ) 
-        external 
-        payable 
-        onlyProxy
-        nonReentrant {
-        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
-        _buySharesImp(creatorId, sharesAmount);
-    }
-
     function _createSharesForPiecewiseImp(
         uint256 creatorId, 
         uint256 startPrice, 
@@ -229,7 +209,19 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
         require(creator == msg.sender, "Not creator");
     }
 
-    function _createParamsVerification(uint256 creatorId, uint256 initialPrice, uint256 initialAmount, uint256 sharesAmount, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk) internal view {
+    function _createParamsVerification(
+        uint256 creatorId, 
+        uint256 initialPrice, 
+        uint256 initialAmount, 
+        uint256 sharesAmount, 
+        uint256 a, 
+        uint256 b, 
+        bool signOfb, 
+        uint256 k, 
+        bool signOfk
+    ) 
+        internal 
+        view {
         _isCreatedVerification(creatorId);
         require(sharesAmount >= initialAmount, "incorrect sharesAmount");
         require(a > 0, "incorrect curve params");

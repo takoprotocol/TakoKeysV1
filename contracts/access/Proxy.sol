@@ -18,6 +18,7 @@ contract Proxy {
 
     // Constructor to set the initial proxy address
     constructor(address _proxy) {
+        isProxyOn = true;
         require(_proxy != address(0), "Proxy address cannot be the zero address");
         proxy = _proxy;
         emit ProxyChanged(proxy);
