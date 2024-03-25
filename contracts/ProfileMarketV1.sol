@@ -18,7 +18,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
     IFarcasterKey public immutable farcasterKey;
-    IIdRegistry public immutable farcasterHub;
 
     bool public isOpenInit;
     address public protocolFeeDestination;
@@ -31,6 +30,7 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
 
     mapping(uint256 => uint256) public sharesSupply;
     mapping(address => uint256) public userClaimable;
+    mapping(uint256 => address) public creatorMap;
 
     mapping(uint256 => poolParams) public poolInfo;
 
@@ -52,10 +52,8 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
     event CreateShares(uint256 creatorId, poolParams info);
     event ClaimEvent(address indexed user, uint fee);
 
-    constructor(IIdRegistry _farcasterHub, address _proxy) Proxy(_proxy) {
-        require(address(_farcasterHub) != address(0), "invalid farcaster address");
+    constructor(address _proxy) Proxy(_proxy) {
         farcasterKey = new FarcasterKey(msg.sender);
-        farcasterHub = _farcasterHub;
         protocolFeeDestination = msg.sender;
     }
 
@@ -132,25 +130,9 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
         return price - protocolFee - creatorFee;
     }
 
-    function createSharesForPiecewise(
-        uint256 creatorId, 
-        uint256 startPrice, 
-        uint256 initialSupply, 
-        uint256 totalSupply, 
-        uint256 a, 
-        uint256 b, 
-        bool signOfb, 
-        uint256 k, 
-        bool signOfk
-    ) 
-        public 
-        nonReentrant {
-        _creatorCheck(creatorId);
-        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
-    }
-
     function createSharesForPiecewiseWithProxy(
         uint256 creatorId, 
+        address creator,
         uint256 startPrice, 
         uint256 initialSupply, 
         uint256 totalSupply, 
@@ -163,27 +145,8 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
         public 
         onlyProxy
         nonReentrant {
+        creatorMap[creatorId] = creator;
         _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
-    }
-
-    function createSharesWithInitialBuy(
-        uint256 creatorId, 
-        uint256 startPrice, 
-        uint256 initialSupply, 
-        uint256 totalSupply, 
-        uint256 a, 
-        uint256 b, 
-        bool signOfb, 
-        uint256 k, 
-        bool signOfk, 
-        uint256 sharesAmount
-    ) 
-        external 
-        payable 
-        nonReentrant {
-        _creatorCheck(creatorId);
-        _createSharesForPiecewiseImp(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
-        _buySharesImp(creatorId, sharesAmount);
     }
 
     function _createSharesForPiecewiseImp(
@@ -202,11 +165,6 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
         _createParamsVerification(creatorId, startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk);
         poolInfo[creatorId] = poolParams(startPrice, initialSupply, totalSupply, a, b, signOfb, k, signOfk ,true);
         emit CreateShares(creatorId, poolInfo[creatorId]);
-    }
-
-    function _creatorCheck(uint256 creatorId) view internal{
-        address creator = _getCreatorById(creatorId);
-        require(creator == msg.sender, "Not creator");
     }
 
     function _createParamsVerification(
@@ -249,7 +207,7 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
     }
 
     function _buySharesImp(uint256 creatorId, uint256 sharesAmount) internal {
-        address creator = _getCreatorById(creatorId);
+        address creator = creatorMap[creatorId];
         uint256 supply = sharesSupply[creatorId];
         fees memory fee = _calculateFeesForPiecewise(creatorId, sharesAmount, true);
         uint256 totalFee = fee.price + fee.creatorFee + fee.protocolFee;
@@ -323,8 +281,7 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
     function _sellShare(uint256 creatorId, uint256[] memory tokenIds) internal returns (uint256){
         fees memory fee = _calculateFeesForPiecewise(creatorId, tokenIds.length, false);
         sharesSupply[creatorId] -= tokenIds.length;
-        address creator = _getCreatorById(creatorId);
-        userClaimable[creator] += fee.creatorFee;
+        userClaimable[creatorMap[creatorId]] += fee.creatorFee;
         require(sendFunds(msg.sender, fee.price, fee.protocolFee, fee.creatorFee), "send funds failed");
         emit TradeEvent(msg.sender, creatorId, false, tokenIds.length, tokenIds, fee, sharesSupply[creatorId]);
         return fee.price - fee.protocolFee - fee.creatorFee;
@@ -429,14 +386,6 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
 
     function _getPriceOnConstant(uint256 changeAmount, poolParams memory info) pure internal returns (uint256){
         return changeAmount * info.idoPrice; 
-    }
-
-    function _getCreatorById(
-        uint256 creatorId
-    ) internal view returns (address) {
-        address creator = farcasterHub.custodyOf(creatorId);
-        require(creator != address(0), "Creator can not be zero");
-        return creator;
     }
 
     function calculate(uint256 a, uint256 b, bool shouldAdd) public pure returns (uint256) {

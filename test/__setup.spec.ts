@@ -59,13 +59,13 @@ async function initAccount() {
 }
 
 async function initContract() {
-  await initFarcasterMock();
+  // await initFarcasterMock();
   const takoV1Factory = await hre.ethers.getContractFactory(
     "ProfileMarketV1"
   );
   profileMarketV1 = (await takoV1Factory
     .connect(deployer)
-    .deploy(farcasterHubMock.address, await deployer.getAddress())) as ProfileMarketV1;
+    .deploy(await deployer.getAddress())) as ProfileMarketV1;
   farcasterKey = new ethers.Contract(
     await profileMarketV1.farcasterKey(),
     FarcasterKeyAbi,
@@ -73,10 +73,10 @@ async function initContract() {
   ) as FarcasterKey;
 }
 
-async function initFarcasterMock(){
-  const creatorOwner = await users[0].getAddress();
-  const creatorOwner1 = await users[1].getAddress();
-  farcasterHubMock = await smock.fake(FarcasterHubAbi);
-  farcasterHubMock.custodyOf.whenCalledWith(1).returns(creatorOwner);
-  farcasterHubMock.custodyOf.whenCalledWith(2).returns(creatorOwner1);
-}
+// async function initFarcasterMock(){
+//   const creatorOwner = await users[0].getAddress();
+//   const creatorOwner1 = await users[1].getAddress();
+//   farcasterHubMock = await smock.fake(FarcasterHubAbi);
+//   farcasterHubMock.custodyOf.whenCalledWith(1).returns(creatorOwner);
+//   farcasterHubMock.custodyOf.whenCalledWith(2).returns(creatorOwner1);
+// }

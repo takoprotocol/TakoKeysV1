@@ -88,51 +88,33 @@ makeSuiteCleanRoom('ProfileMarketV1', () => {
     });
   })
 
-  context('User Create', () => {
-    beforeEach(async () => {
-      await init();
-    });
-    it('Should success to create share', async () => {
-      await expect(profileMarketV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true)).to.not.reverted;
-    })
-    it('Should success to create share and buy', async () => {
-      await expect(profileMarketV1.connect(creatorOwner1).createSharesWithInitialBuy(CREATOR_ID_A, 10000, 5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true, 3, {value: 33000})).to.not.reverted;
-    })
-    it('Should fail due to share has been created', async () => {
-      await profileMarketV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true,);
-      await expect(profileMarketV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 10 * 10**8,  0, true, 10000 * 10**8, true)).to.revertedWith(ERRORS.POOL_CREATED);
-    })
-    it('Should fail due to CREATOR ID not exist', async () => {
-      await expect(profileMarketV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_NOT_EXIST, 10000, 5, 50 , 10* 10**8, 0, true, 10000 * 10**8, true)).to.revertedWith(ERRORS.CREATOR_CAN_NOT_BE_ZERO);
-    })
-    it('Should success to create share with negative signs', async () => {
-      await expect(profileMarketV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 10000, 5, 50, 500 * 10**8, 0, true, 500 * 10**8, false)).to.not.reverted;
-      await expect(profileMarketV1.connect(creatorOwner).buyShares(CREATOR_ID, 6, {value: 74250})).to.not.reverted;
-    })
-    it('test for decimal', async () =>{
-      //uint256 creatorId, uint256 startPrice, uint256 initialSupply, uint256 totalSupply, uint256 a, uint256 b, bool signOfb, uint256 k, bool signOfk, uint256 sharesAmount)
-      await profileMarketV1.connect(creatorOwner).createSharesWithInitialBuy(CREATOR_ID, 2 ,3, 400, 625035158227651, 0 , true, 5625316420160000,false,4 ,{value: 48127719 })
-      //await takoKeysV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID, 0, 3, 400, 625035158227651, 0 , true, 5625316420160000, false);
-      //console.log(await takoKeysV1.connect(creatorOwner).getBuyPrice(CREATOR_ID, 4));
-    })
-  })
-
   context('Proxy Create', () => {
     beforeEach(async () => {
       await init();
     });
     it('Should success to create share', async () => {
-      await expect(profileMarketV1.connect(deployer).createSharesForPiecewiseWithProxy(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true)).to.not.reverted;
+      await expect(profileMarketV1.connect(deployer).createSharesForPiecewiseWithProxy(
+        CREATOR_ID,
+        await creatorOwner.getAddress(),
+        10000,
+        5, 
+        50, 
+        10 * 10**8, 
+        0, 
+        true, 
+        10000 * 10**8, 
+        true
+      )).to.not.reverted;
     })
   })
 
   context('User buy', () => {
-    before(async () => {
+    beforeEach(async () => {
       await init();
       await initCreate();
     })
       it('Should success to buy Shares', async () => {
-        await expect(profileMarketV1.connect(user).buyShares(CREATOR_ID, 2, {value: 22000})).to.not.reverted;
+        await expect(profileMarketV1.connect(deployer).buyShares(CREATOR_ID, 2, {value: 22000})).to.not.reverted;
       })
       it('Should fail to buy with insufficient token', async () => {
         await expect(profileMarketV1.connect(user).buyShares(CREATOR_ID, 2, {value: 21999})).to.revertedWith(ERRORS.INSUFFICIENT_PAYMENT)
@@ -156,6 +138,7 @@ makeSuiteCleanRoom('ProfileMarketV1', () => {
   context('User sell', () => {
     before(async () =>{
       await init();
+      await initCreate();
       await initBuy();
     });
       it('Should success to sell Share on curve only',async () => {
@@ -241,7 +224,18 @@ async function init() {
 }
 
 async function initCreate() {
-  await expect(profileMarketV1.connect(creatorOwner).createSharesForPiecewise(CREATOR_ID,10000,5, 50, 10 * 10**8, 0, true, 10000 * 10**8, true)).to.not.reverted;
+  await profileMarketV1.connect(deployer).createSharesForPiecewiseWithProxy(
+    CREATOR_ID, 
+    await creatorOwner.getAddress(), 
+    10000,
+    5, 
+    50, 
+    10 * 10**8, 
+    0, 
+    true, 
+    10000 * 10**8, 
+    true
+  );
 }
 
 async function initBuy() {
