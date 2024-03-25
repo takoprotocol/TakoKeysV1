@@ -37,6 +37,18 @@ const config: HardhatUserConfig = {
       gas: "auto",
       gasPrice: "auto"
     },
+    basetestnet: {
+      url: `https://base-sepolia.g.alchemy.com/v2/${process.env.BASE_TESTNET_API_KEY}`,
+      accounts: [`0x${PRIVATE_KEY}`], // Replace with your private key
+      gas: "auto",
+      gasPrice: "auto"
+    },
+    basemainnet: {
+      url: `https://base-mainnet.g.alchemy.com/v2/${process.env.BASE_MAINNET_API_KEY}`,
+      accounts: [`0x${PRIVATE_KEY}`], // Replace with your private key
+      gas: "auto",
+      gasPrice: "auto"
+    },
     hardhat: {
       chainId: HARDHATEVM_CHAINID,
       accounts: TEST_ACCOUNTS.map(

@@ -205,22 +205,22 @@ async function init() {
   relayer = testWallet;
   creatorOwner = users[0];
   creatorOwner1 = users[1];
-  await profileMarketV1.connect(deployer).setOpenInit(true);
-  await profileMarketV1
-    .connect(deployer)
-    .setProtocolBuyFeePercent(FEE_PERCENT.toFixed());
-  await profileMarketV1
-    .connect(deployer)
-    .setProtocolSellFeePercent(FEE_PERCENT.toFixed());
-  await profileMarketV1
-    .connect(deployer)
-    .setCreatorBuyFeePercent(FEE_PERCENT.toFixed());
-  await profileMarketV1
-    .connect(deployer)
-    .setCreatorSellFeePercent(FEE_PERCENT.toFixed());
-  await profileMarketV1
-    .connect(deployer)
-    .setFeeDestination(deployer.getAddress());
+  // await profileMarketV1.connect(deployer).setOpenInit(true);
+  // await profileMarketV1
+  //   .connect(deployer)
+  //   .setProtocolBuyFeePercent(FEE_PERCENT.toFixed());
+  // await profileMarketV1
+  //   .connect(deployer)
+  //   .setProtocolSellFeePercent(FEE_PERCENT.toFixed());
+  // await profileMarketV1
+  //   .connect(deployer)
+  //   .setCreatorBuyFeePercent(FEE_PERCENT.toFixed());
+  // await profileMarketV1
+  //   .connect(deployer)
+  //   .setCreatorSellFeePercent(FEE_PERCENT.toFixed());
+  // await profileMarketV1
+  //   .connect(deployer)
+  //   .setFeeDestination(deployer.getAddress());
 }
 
 async function initCreate() {

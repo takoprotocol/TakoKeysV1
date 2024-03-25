@@ -55,6 +55,11 @@ contract ProfileMarketV1 is IProfileMarketV1, Ownable, ReentrancyGuard, Proxy {
     constructor(address _proxy) Proxy(_proxy) {
         farcasterKey = new FarcasterKey(msg.sender);
         protocolFeeDestination = msg.sender;
+        isOpenInit = true;
+        protocolBuyFeePercent = (10**16) *5;
+        protocolSellFeePercent = (10**16) *5;
+        creatorBuyFeePercent = (10**16) *5;
+        creatorSellFeePercent = (10**16) *5;
     }
 
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
